@@ -1,6 +1,11 @@
 import { BaseMailer, MessageContract } from '@ioc:Adonis/Addons/Mail'
+import User from 'App/Models/User'
 
 export default class VerifyEmail extends BaseMailer {
+
+  constructor(private user:User){
+    super()
+  }
   /**
    * WANT TO USE A DIFFERENT MAILER?
    *
@@ -18,6 +23,10 @@ export default class VerifyEmail extends BaseMailer {
    * also be async.
    */
   public prepare(message: MessageContract) {
-    message.subject('The email subject').from('admin@example.com').to('user@example.com')
+    message.
+    subject('Bienvenido/a a nuestro sitio')
+    .from('UTT@.com')
+    .to(this.user.email)
+    .htmlView('emails/correo', { user: this.user })
   }
 }

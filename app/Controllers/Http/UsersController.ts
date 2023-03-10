@@ -2,6 +2,8 @@ import { HttpContext } from "@adonisjs/core/build/standalone";
 import User from "App/Models/User";
 import { schema, rules } from "@ioc:Adonis/Core/Validator";
 import Hash from "@ioc:Adonis/Core/Hash";
+import Mail from '@ioc:Adonis/Addons/Mail'
+import View from "@ioc:Adonis/Core/View";
 
 
 export default class UsersController {
@@ -64,6 +66,29 @@ export default class UsersController {
       user.telefono = telefono;
       user.no_verificacion = numeroAleatorio;
       await user.save();
+      
+       
+      // await Mail.send((message) => {
+      //   message
+      //     .from('info@example.com')
+      //     .to(user.email)
+      //     .subject('Welcome Onboard!')
+      //     .htmlView('emails/correo', { user })
+
+      // })
+
+      
+      const html = await View.render('emails/correo', {user});
+
+      // Envía el correo
+      await Mail.send((message) => {
+        message
+          .from('UTT@example.com')
+          .to(user.email)
+          .subject('Bienvenido/a a nuestro sitio')
+          .html(html);
+      });
+    
 
       return response.status(201).json({
         message: "Usuario registrado correctamente",
