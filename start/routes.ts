@@ -31,6 +31,7 @@ Route.group(() => {
   Route.get('/users/:id', 'UsersController.mostrarusuario')
   Route.put('/users/:id', 'UsersController.actualizarusuario')
   Route.delete('/users/:id', 'UsersController.eliminarusuario')
+  Route.get('/validarnumero/:url', 'UsersController.numerodeverificacionmovil').as('validarnumero');
 }).prefix('api')
 
 Route.group(()=>{

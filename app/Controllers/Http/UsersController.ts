@@ -1,12 +1,53 @@
-import { HttpContext } from "@adonisjs/core/build/standalone";
+import { HttpContext, Request, Response } from "@adonisjs/core/build/standalone";
 import User from "App/Models/User";
 import { schema, rules } from "@ioc:Adonis/Core/Validator";
 import Hash from "@ioc:Adonis/Core/Hash";
 import Mail from '@ioc:Adonis/Addons/Mail'
 import View from "@ioc:Adonis/Core/View";
 
+import Route from '@ioc:Adonis/Core/Route'
+import Database from "@ioc:Adonis/Lucid/Database";
+import axios from "axios";
 
 export default class UsersController {
+
+
+
+
+
+
+
+  public async numerodeverificacionmovil({request, response}:HttpContext) {
+
+
+    const numeroiddelaurl = request.param('url');
+    console.log(numeroiddelaurl)
+    
+     const user = await Database.from('users').where('id', numeroiddelaurl).first();
+     const correo = user.email;
+     await Mail.send(async (message) => {
+       message
+         .from('UTT@example.com')
+         .to(user.email)
+         .subject('Segundo paso/a a nuestro sitio')
+         .html(await View.render('emails/welcome', { user }));
+     });
+  
+     await axios.post('https://rest.nexmo.com/sms/json', {
+       from: 'Vonage APIs',
+       api_key: '7beade0e',
+       api_secret: 'HFNnWOFyNs16m3BA',
+       to: `52${user.telefono}`,
+       text: `Tu codigo de verificacion es: ${user.no_verificacion}, sigue las instrucciones en tu correo electronico`,
+     });
+   
+   
+  
+     const domain = correo.substring(correo.lastIndexOf('@') + 1);
+   //  return { status: 301, headers: { Location: `https://${domain}` } };
+     response.redirect(`https://${domain}`)
+  }
+  
 
   //----------------------------------------------------------------------
   public async crearusuario({ request, response }: HttpContext) {
@@ -66,19 +107,23 @@ export default class UsersController {
       user.telefono = telefono;
       user.no_verificacion = numeroAleatorio;
       await user.save();
+      const HOST = process.env.HOST;
+      const PORT = process.env.PORT;
+      const url = "http://"+HOST+":"+PORT+Route.makeSignedUrl(
+        "validarnumero",
+        {
+          url: user.id,
+        },
+        {
+          expiresIn: "30m",
+        }
+      ); 
       
-       
-      // await Mail.send((message) => {
-      //   message
-      //     .from('info@example.com')
-      //     .to(user.email)
-      //     .subject('Welcome Onboard!')
-      //     .htmlView('emails/correo', { user })
-
-      // })
-
       
-      const html = await View.render('emails/correo', {user});
+
+      const html = await View.render('emails/correo', {user,url});
+
+      console.log(url)
 
       // Envía el correo
       await Mail.send((message) => {
@@ -88,7 +133,7 @@ export default class UsersController {
           .subject('Bienvenido/a a nuestro sitio')
           .html(html);
       });
-    
+     
 
       return response.status(201).json({
         message: "Usuario registrado correctamente",
@@ -103,6 +148,39 @@ export default class UsersController {
       });
     }
   }
+
+ 
+
+  public async registrarsms({ request, response }: HttpContext) {
+    const validationSchema = schema.create({
+      codigo: schema.string({ trim: true, escape: true }, [
+        rules.required(),
+        rules.minLength(4),
+        rules.maxLength(4),
+      ]),
+    });
+  
+    const data = await request.validate({
+      schema: validationSchema,
+      messages: {
+        "codigo.required": "El codigo es requerido",
+        "codigo.minLength": "El codigo debe tener al menos 4 caracteres",
+        "codigo.maxLength": "El codigo debe tener como máximo 4 caracteres",
+      },
+    });
+  
+    const user = await Database.from('users').where('no_verificacion', data.codigo).first();
+  
+    if (user) {
+      // Actualizar el campo "status" a 1
+      await Database.from('users').where('no_verificacion', data.codigo).update({ status: 1 });
+  
+      return response.status(200).json({ message: 'Usuario actualizado correctamente' });
+    } else {
+      return response.status(404).json({ message: 'Usuario no encontrado' });
+    }
+  }
+  
 
 //----------------------------------------------------------------------
   
@@ -193,6 +271,13 @@ export default class UsersController {
       user: user,
     });
   }
+
+
+  
 }
 
+
+function validationResult(req: Request) {
+  throw new Error("Function not implemented.");
+}
 
