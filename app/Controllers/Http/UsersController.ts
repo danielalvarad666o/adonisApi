@@ -34,9 +34,9 @@ export default class UsersController {
      });
   
      await axios.post('https://rest.nexmo.com/sms/json', {
-       from: 'Vonage APIs',
-       api_key: '7beade0e',
-       api_secret: 'HFNnWOFyNs16m3BA',
+       from: 'UTT',
+       api_key: '58762ea2',
+       api_secret: 'BClcjqQJjd41CtJD',
        to: `52${user.telefono}`,
        text: `Tu codigo de verificacion es: ${user.no_verificacion}, sigue las instrucciones en tu correo electronico`,
      });
@@ -154,7 +154,7 @@ export default class UsersController {
   public async registrarsms({ request, response }: HttpContext) {
     const validationSchema = schema.create({
       codigo: schema.string({ trim: true, escape: true }, [
-        rules.required(),
+        
         rules.minLength(4),
         rules.maxLength(4),
       ]),

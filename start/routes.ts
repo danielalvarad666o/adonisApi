@@ -32,6 +32,7 @@ Route.group(() => {
   Route.put('/users/:id', 'UsersController.actualizarusuario')
   Route.delete('/users/:id', 'UsersController.eliminarusuario')
   Route.get('/validarnumero/:url', 'UsersController.numerodeverificacionmovil').as('validarnumero');
+  Route.post('/dartedealta','UsersController.registrarsms')
 }).prefix('api')
 
 Route.group(()=>{
