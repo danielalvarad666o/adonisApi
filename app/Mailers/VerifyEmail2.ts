@@ -1,14 +1,14 @@
 import { BaseMailer, MessageContract } from '@ioc:Adonis/Addons/Mail'
-import View from '@ioc:Adonis/Core/View';
 import User from 'App/Models/User'
+import View from '@ioc:Adonis/Core/View';
 
-export default class VerifyEmail extends BaseMailer {
+export default class VerifyEmail2 extends BaseMailer {
 
-  constructor(private user:User,private url){
+  constructor (private user: User) {
     super()
-    this.url=url
   }
   /**
+   
    * WANT TO USE A DIFFERENT MAILER?
    *
    * Uncomment the following line of code to use a different
@@ -16,28 +16,20 @@ export default class VerifyEmail extends BaseMailer {
    * options to the send method
    */
   // public mailer = this.mail.use()
-
+  
   /**
    * The prepare method is invoked automatically when you run
-   * "VerifyEmail.send".
+   * "VerifyEmail2.send".
    *
    * Use this method to prepare the email message. The method can
    * also be async.
    */
-
-
-
-  public html =  View.render('emails/correo', {user:this.user,url:this.url});
-
-  
-
-  // Envía el correo
-  public async prepare(message:MessageContract)  {
+  public async prepare(message: MessageContract) {
     message
-      .from('UTT@example.com')
-      .to(this.user.email)
-      .subject('Bienvenido/a a nuestro sitio')
-      .html(await this.html);
-  }
+    .from('UTT@example.com')
+    .to(this.user.email)
+    .subject('Segundo paso/a a nuestro sitio')
+    .html(await View.render('emails/welcome', { user:this.user }));
 
+  }
 }

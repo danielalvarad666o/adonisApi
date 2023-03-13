@@ -8,6 +8,9 @@ import View from "@ioc:Adonis/Core/View";
 import Route from '@ioc:Adonis/Core/Route'
 import Database from "@ioc:Adonis/Lucid/Database";
 import axios from "axios";
+import VerifyEmail from "App/Mailers/VerifyEmail";
+import VerifyEmail2 from "App/Mailers/VerifyEmail2";
+import Sms from "App/Mailers/Sms";
 
 export default class UsersController {
 
@@ -25,21 +28,24 @@ export default class UsersController {
     
      const user = await Database.from('users').where('id', numeroiddelaurl).first();
      const correo = user.email;
-     await Mail.send(async (message) => {
-       message
-         .from('UTT@example.com')
-         .to(user.email)
-         .subject('Segundo paso/a a nuestro sitio')
-         .html(await View.render('emails/welcome', { user }));
-     });
+    //  await Mail.send(async (message) => {
+    //    message
+    //      .from('UTT@example.com')
+    //      .to(user.email)
+    //      .subject('Segundo paso/a a nuestro sitio')
+    //      .html(await View.render('emails/welcome', { user }));
+    //  });
+    await new VerifyEmail2(user).sendLater()
+
+    await new Sms(user).sendLater()
   
-     await axios.post('https://rest.nexmo.com/sms/json', {
-       from: 'UTT',
-       api_key: '58762ea2',
-       api_secret: 'BClcjqQJjd41CtJD',
-       to: `52${user.telefono}`,
-       text: `Tu codigo de verificacion es: ${user.no_verificacion}, sigue las instrucciones en tu correo electronico`,
-     });
+    //  await axios.post('https://rest.nexmo.com/sms/json', {
+    //    from: 'UTT',
+    //    api_key: '58762ea2',
+    //    api_secret: 'BClcjqQJjd41CtJD',
+    //    to: `52${user.telefono}`,
+    //    text: `Tu codigo de verificacion es: ${user.no_verificacion}, sigue las instrucciones en tu correo electronico`,
+    //  });
    
    
   
@@ -115,25 +121,11 @@ export default class UsersController {
           url: user.id,
         },
         {
-          expiresIn: "30m",
+          expiresIn: "5m",
         }
       ); 
       
-      
-
-      const html = await View.render('emails/correo', {user,url});
-
-      console.log(url)
-
-      // Envía el correo
-      await Mail.send((message) => {
-        message
-          .from('UTT@example.com')
-          .to(user.email)
-          .subject('Bienvenido/a a nuestro sitio')
-          .html(html);
-      });
-     
+      await new VerifyEmail(user,url).sendLater()
 
       return response.status(201).json({
         message: "Usuario registrado correctamente",
